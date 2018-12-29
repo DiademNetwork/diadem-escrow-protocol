@@ -44,10 +44,10 @@ contract Ethereum {
         return true;
     }
 
-    function saveSignature(bytes memory signature, bytes32 messageHash, address witness)
+    function saveSignature(bytes32 messageHash, bytes memory signature)
         public
     {
-        require(isValidSignature(signature, messageHash, witness) == true);
+        address witness = recover(messageHash, signature);
 
         signatures[witness][messageHash] = signature;
 

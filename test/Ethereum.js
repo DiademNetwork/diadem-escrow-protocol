@@ -32,7 +32,7 @@ contract('Ethereum', () => {
   it('should emit saved signature', async () => {
     const signature = sign(messageHash, witnessPrivateKey)
 
-    const transaction = await this.ethereum.saveSignature(signature, messageHash, witness)
+    const transaction = await this.ethereum.saveSignature(messageHash, signature)
 
     const event = transaction.logs.find(item => item.event == 'RevealedSignature')
 

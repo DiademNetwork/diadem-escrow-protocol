@@ -104,7 +104,8 @@ contract Diadem {
 
         require(achievements[messageHash].exists == true);
 
-        ethereum.saveSignature(signature, messageHash, witness);
+        ethereum.saveSignature(messageHash, signature);
+        bitcoin.saveSignature(messageHash, signature);
 
         emit Confirm(owner, link, witness);
     }

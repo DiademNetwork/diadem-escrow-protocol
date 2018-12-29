@@ -1,8 +1,14 @@
 const { expect, expectFail } = require('./helpers/setup')
 const { sign } = require('./helpers/crypto')
 
-const difference = (a, b) =>
-  new web3.utils.BN(a).sub(new web3.utils.BN(b)).toNumber()
+const difference = (numberOne, numberTwo) => {
+  const bigNumberOne = new web3.utils.BN(numberOne)
+  const bigNumberTwo = new web3.utils.BN(numberTwo)
+
+  return bigNumberOne.gte(bigNumberTwo) ?
+    bigNumberOne.sub(bigNumberTwo).toNumber() :
+    bigNumberTwo.sub(bigNumberOne).toNumber()
+}
 
 const Escrow = artifacts.require('Escrow')
 
@@ -94,8 +100,8 @@ contract('Escrow', ([_, from, beneficiary, relayer]) => {
     expect(event.args.messageHash).to.be.equal(messageHash)
 
     expect(difference(beneficiaryBalanceAfter, beneficiaryBalanceBefore)).to.be.equal(beneficiaryAmount)
-    expect(difference(witnessBalanceAfter, witnessBalanceBefore)).to.be.equal(witnessFee)
-    expect(difference(relayerBalanceBefore, relayerBalanceAfter)).to.be.above(relayerFee)
+    expect(difference(witnessBalanceAfter, witnessBalanceBefore)).to.be.above(witnessFee)
+    expect(difference(relayerBalanceAfter, relayerBalanceBefore)).to.be.above(relayerFee)
   })
 
   it('should refund funds to sponsor', async () => {
