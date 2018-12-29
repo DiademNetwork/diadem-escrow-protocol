@@ -49,10 +49,18 @@ contract('Bitcoin', () => {
     console.log('signature', signature)
 
     const valid = await this.bitcoin.isValidSignature(
-      signature, messageHash, witnessPublicKey, witnessPublicKeyCompressed, witnessBitcoinAddress
+      signature, messageHash, witnessPublicKey, witnessBitcoinAddress
     )
 
     expect(valid).to.be.equal(true)
+  })
+
+  it('should compress public key', async () => {
+    const compressedPublicKey = await this.bitcoin.getCompressedPublicKey(witnessPublicKey)
+
+    console.log(compressedPublicKey)
+
+    expect(compressedPublicKey).to.be.equal(witnessPublicKeyCompressed)
   })
 
   it('should emit saved signature', async () => {
@@ -60,7 +68,7 @@ contract('Bitcoin', () => {
     const signature = sign(messageHash, witnessPrivateKey)
 
     const transaction = await this.bitcoin.saveSignature(
-      signature, messageHash, witnessPublicKey, witnessPublicKeyCompressed, witnessBitcoinAddress
+      signature, messageHash, witnessPublicKey, witnessBitcoinAddress
     )
 
     const event = transaction.logs.find(item => item.event == 'RevealedSignature')

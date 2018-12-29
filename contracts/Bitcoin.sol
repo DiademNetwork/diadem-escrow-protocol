@@ -106,11 +106,12 @@ contract Bitcoin {
         bytes memory signature,
         bytes32 messageHash,
         bytes memory publicKey,
-        bytes memory publicKeyCompressed,
         string memory witness
     )
         public pure returns (bool)
     {
+        bytes memory publicKeyCompressed = getCompressedPublicKey(publicKey);
+
         address ethereumSignerAddress = recover(messageHash, signature);
 
         address ethereumWitnessAddress = getEthereumAddress(publicKey);
@@ -134,16 +135,40 @@ contract Bitcoin {
         bytes memory signature,
         bytes32 messageHash,
         bytes memory publicKey,
-        bytes memory publicKeyCompressed,
         string memory witness
     )
         public returns (bool)
     {
-        require(isValidSignature(signature, messageHash, publicKey, publicKeyCompressed, witness) == true);
+        require(isValidSignature(signature, messageHash, publicKey, witness) == true);
 
         signatures[witness][messageHash] = signature;
 
         emit RevealedSignature(signature, messageHash, witness);
+    }
+
+    function getCompressedPublicKey(
+        bytes memory publicKey
+    )
+        public pure returns (bytes memory)
+    {
+        bytes32 publicKeyX;
+        bytes32 publicKeyY;
+
+        assembly {
+            publicKeyX := mload(add(publicKey, 0x20))
+            publicKeyY := mload(add(publicKey, 0x40))
+        }
+
+        uint8 prefix;
+        if (uint256(publicKeyY) & 1 == 0) {
+            prefix = 2;
+        } else {
+            prefix = 3;
+        }
+
+        bytes memory compressedPublicKey = abi.encodePacked(prefix, publicKeyX);
+
+        return compressedPublicKey;
     }
 
     event RevealedSignature(bytes signature, bytes32 messageHash, string witness);
