@@ -10,65 +10,38 @@ const {
 
 const Bitcoin = artifacts.require('Bitcoin')
 
-contract('Bitcoin', () => {
+const fs = require("fs")
+const ecrecoverBytecode = '0x' + fs.readFileSync("./contracts/ecrecover/ecrecover.bin").toString().trim()
+
+contract('Bitcoin', ([deployer]) => {
+  const messageHash = '0x877fcd36dcedc3578d5058faaf8ee276f8fb5210baf0872cb610d59993a2655f'
   const witnessPrivateKey = '0x2a0957f39b7edd9ef34d6d68ce8f6427ae8e1896ca49847b385b659b5ac04dce'
   const witnessPrivateKeyWif = getPrivateKeyWif(witnessPrivateKey)
-  console.log('witnessPrivateKeyWif', witnessPrivateKeyWif)
   const witnessPublicKey = getPublicKey(witnessPrivateKey)
-  console.log('witnessPublicKey', witnessPublicKey)
   const witnessPublicKeyCompressed = getPublicKeyFromWif(witnessPrivateKeyWif)
-  console.log('witnessPublicKeyCompressed', witnessPublicKeyCompressed)
-  const messageHash = '0x877fcd36dcedc3578d5058faaf8ee276f8fb5210baf0872cb610d59993a2655f'
 
   before(async() => {
-    this.bitcoin = await Bitcoin.new()
-    this.witnessEthereumAddress = await this.bitcoin.getEthereumAddress(witnessPublicKey)
+    const Contract = new web3.eth.Contract([])
+
+    const ecrecover = await Contract.deploy({ data: ecrecoverBytecode }).send({ from: deployer, gas: 5500000 })
+
+    this.bitcoin = await Bitcoin.new(ecrecover.options.address, "0x00", web3.utils.stringToHex("1"))
+
     this.witnessBitcoinAddress = await this.bitcoin.getBitcoinAddress(witnessPublicKeyCompressed)
   })
 
-  it('should generate correct ethereum address', async () => {
-    const expectedEthereumAddress = getEthereumAddress(witnessPublicKey)
-
-    console.log('expectedEthereumAddress', expectedEthereumAddress)
-
-    expect(this.witnessEthereumAddress).to.be.equal(expectedEthereumAddress);
-  })
-
-  it('should generate correct bitcoin address', async () => {
+  it('should generate bitcoin address from public key', async () => {
     const expectedBitcoinAddress = getBitcoinAddress(witnessPublicKeyCompressed)
-
-    console.log('expectedBitcoinAddress', expectedBitcoinAddress)
 
     expect(this.witnessBitcoinAddress).to.be.equal(expectedBitcoinAddress)
   })
 
-  it('should accept valid signature', async () => {
-    const witnessBitcoinAddress = getBitcoinAddress(witnessPublicKeyCompressed)
-    const signature = sign(messageHash, witnessPrivateKey)
-
-    console.log('signature', signature)
-
-    const valid = await this.bitcoin.isValidSignature(
-      signature, messageHash, witnessPublicKey, witnessBitcoinAddress
-    )
-
-    expect(valid).to.be.equal(true)
-  })
-
-  it('should compress public key', async () => {
-    const compressedPublicKey = await this.bitcoin.getCompressedPublicKey(witnessPublicKey)
-
-    console.log(compressedPublicKey)
-
-    expect(compressedPublicKey).to.be.equal(witnessPublicKeyCompressed)
-  })
-
-  it('should emit saved signature', async () => {
+  it('should recover bitcoin address from signature', async () => {
     const witnessBitcoinAddress = getBitcoinAddress(witnessPublicKeyCompressed)
     const signature = sign(messageHash, witnessPrivateKey)
 
     const transaction = await this.bitcoin.saveSignature(
-      signature, messageHash, witnessPublicKey, witnessBitcoinAddress
+      messageHash, signature
     )
 
     const event = transaction.logs.find(item => item.event == 'RevealedSignature')
@@ -80,5 +53,13 @@ contract('Bitcoin', () => {
     expect(event.args.witness).to.be.equal(witnessBitcoinAddress)
 
     expect(savedSignature).to.be.equal(signature)
+  })
+
+  it('should check if number is even', async () => {
+    const result1 = await this.bitcoin.isEven(4)
+    const result2 = await this.bitcoin.isEven(5)
+
+    expect(result1).to.be.equal(true)
+    expect(result2).to.be.equal(false)
   })
 })

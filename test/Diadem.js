@@ -6,7 +6,10 @@ const Messages = artifacts.require('Messages')
 const Bitcoin = artifacts.require('Bitcoin')
 const Ethereum = artifacts.require('Ethereum')
 
-contract('Diadem', ([_, from]) => {
+const fs = require("fs")
+const ecrecoverBytecode = '0x' + fs.readFileSync("./contracts/ecrecover/ecrecover.bin").toString().trim()
+
+contract('Diadem', ([deployer, from]) => {
   const witness = '0x7F123F1b8aB851D6cD0B0A46cD25122fbF6c16d0'
   const witnessPrivateKey = '0x2a0957f39b7edd9ef34d6d68ce8f6427ae8e1896ca49847b385b659b5ac04dce'
 
@@ -15,8 +18,12 @@ contract('Diadem', ([_, from]) => {
 
   before(async () => {
     this.messages = await Messages.new()
-    this.bitcoin = await Bitcoin.new()
     this.ethereum = await Ethereum.new()
+
+    const Contract = new web3.eth.Contract([])
+    const ecrecover = await Contract.deploy({ data: ecrecoverBytecode }).send({ from: deployer, gas: 5500000 })
+
+    this.bitcoin = await Bitcoin.new(ecrecover.options.address, "0x00", web3.utils.stringToHex("1"))
 
     this.diadem = await Diadem.new(
       this.messages.address,
