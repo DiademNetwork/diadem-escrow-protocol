@@ -23,8 +23,10 @@
     "secp256k1": "^3.6.0",
     "truffle": "^5.0.0",
     "truffle-hdwallet-provider": "^1.0.0-web3one.5",
-    "web3": "^1.0.0-beta.37",
-    "wif": "^2.0.6"
+    "loom-truffle-provider": "^0.11.0",
+    "web3": "1.0.0-beta.34",
+    "wif": "^2.0.6",
+    "loom-js": "1.38.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
