@@ -103,6 +103,7 @@ contract('Diadem', ([deployer, from]) => {
     expect(event.args.owner).to.be.equal(from)
     expect(event.args.link).to.be.equal(link)
     expect(event.args.witness).to.be.equal(witness)
+    expect(typeof event.args.time).to.be.equal('number')
 
     expect(savedSignature).to.be.equal(signature)
   })

@@ -14,6 +14,7 @@ contract Achievements {
         address owner;
         string title;
         string link;
+        uint256 createdAt;
         bool exists;
     }
 
@@ -93,7 +94,7 @@ contract Achievements {
             previousMessageHash = chains[owner][achievementsChainLength - 1];
         }
 
-        Achievement memory achievement = Achievement(owner, title, link, true);
+        Achievement memory achievement = Achievement(owner, title, link, now, true);
 
         achievements[messageHash] = achievement;
 
@@ -111,7 +112,7 @@ contract Achievements {
 
         confirmedBy[messageHash][msg.sender] = true;
 
-        emit Confirm(owner, link, msg.sender);
+        emit Confirm(owner, link, msg.sender, now);
     }
 
     function support(address userAddress, address creatorAddress, string memory link, uint256 amount)
@@ -123,11 +124,11 @@ contract Achievements {
 
         IToken(token).transferFrom(userAddress, creatorAddress, amount);
 
-        emit Support(userAddress, creatorAddress, link, amount);
+        emit Support(userAddress, creatorAddress, link, amount, now);
     }
 
     event Create(bytes32 messageHash, bytes32 previousMessageHash);
     event UpdateTitle(string link, string newTitle);
-    event Confirm(address owner, string link, address witness);
-    event Support(address userAddress, address creatorAddress, string link, uint256 amount);
+    event Confirm(address owner, string link, address witness, uint256 time);
+    event Support(address userAddress, address creatorAddress, string link, uint256 amount, uint256 time);
 }
