@@ -39,8 +39,6 @@ contract Bitcoin {
         emit RevealedSignature(signature, messageHash, bitcoinAddress);
     }
 
-    event Test(bytes compressedPublicKey);
-
     function recoverBitcoinAddress(bytes32 hash, bytes memory signature)
         internal returns (string memory)
     {
